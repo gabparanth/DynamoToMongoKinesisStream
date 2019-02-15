@@ -1,10 +1,13 @@
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/utils/CredentialUtils.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockStats.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockTradeRecordProcessorFactory.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/utils/ConfigurationUtils.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/writer/StockTradeGenerator.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockTradeRecordProcessor.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/model/StockTrade.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockTradesProcessor.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/writer/StockTradesWriter.java
-/Users/gabrielparanthoen/Documents/03 - dev/saEnablement/tuto-kinesis-ddb/test/my-app/src/main/java/com/mycompany/app/App.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/mycompany/app/StreamsRecordProcessor.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockStats.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/mycompany/app/StreamsRecordProcessorFactory.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockTradesProcessor.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/mycompany/app/StreamsAdapterDemoHelper.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/writer/StockTradesWriter.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/mycompany/app/StreamsAdapterDemo.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/model/StockTrade.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/utils/CredentialUtils.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockTradeRecordProcessorFactory.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/processor/StockTradeRecordProcessor.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/writer/StockTradeGenerator.java
+/Users/gabrielparanthoen/Documents/03-dev/saEnablement/tuto-kinesis-ddb/sa-enablement-usecase/my-app/src/main/java/com/amazonaws/services/kinesis/samples/stocktrades/utils/ConfigurationUtils.java
