@@ -24,13 +24,24 @@ import com.amazonaws.services.kinesis.clientlibrary.types.ProcessRecordsInput;
 import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownInput;
 import com.amazonaws.services.kinesis.model.Record;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 import java.nio.charset.Charset;
+// import com.google.gson.*;
 
 public class StreamsRecordProcessor implements IRecordProcessor {
     private Integer checkpointCounter;
 
     private final AmazonDynamoDB dynamoDBClient;
     private final String tableName;
+
+    MongoClient mongoClient = MongoClients.create("mongodb+srv://gabriel:gabriel@cluster0-po3pv.mongodb.net/test?retryWrites=true");
+    MongoDatabase database = mongoClient.getDatabase("saEnablementTest");
+    MongoCollection<Document> collection = database.getCollection("fromDynamodb");
 
     public StreamsRecordProcessor(AmazonDynamoDB dynamoDBClient2, String tableName) {
         this.dynamoDBClient = dynamoDBClient2;
@@ -42,25 +53,52 @@ public class StreamsRecordProcessor implements IRecordProcessor {
         checkpointCounter = 0;
     }
 
+    /**
+     * ProcessRecordsInput.records could be our Kinesis producer side 
+     */
+
+    
+
+
     @Override
     public void processRecords(ProcessRecordsInput processRecordsInput) {
         for (Record record : processRecordsInput.getRecords()) {
             String data = new String(record.getData().array(), Charset.forName("UTF-8"));
-            System.out.println(data);
+            System.out.println("data from Stream to MongoDB: " + data);
             if (record instanceof RecordAdapter) {
-                com.amazonaws.services.dynamodbv2.model.Record streamRecord = ((RecordAdapter) record)
-                        .getInternalObject();
+                
 
-                switch (streamRecord.getEventName()) {
-                    case "INSERT":
-                    case "MODIFY":
-                        StreamsAdapterDemoHelper.putItem(dynamoDBClient, tableName,
-                                                         streamRecord.getDynamodb().getNewImage());
-                        break;
-                    case "REMOVE":
-                        StreamsAdapterDemoHelper.deleteItem(dynamoDBClient, tableName,
-                                                            streamRecord.getDynamodb().getKeys().get("Id").getN());
+                String stringToRecord = data.toString(); 
+                
+                Document doc = new Document("name", "MongoDB")
+                                    .append("type", stringToRecord);
+                
+                try {
+
+                    collection.insertOne(doc);
+                }catch (Exception e) {
+                    e.printStackTrace();
                 }
+                                    
+
+                
+                // com.amazonaws.services.dynamodbv2.model.Record streamRecord = ((RecordAdapter) record)
+                //         .getInternalObject();
+
+                // switch (streamRecord.getEventName()) {
+                //     case "INSERT":
+                //     case "MODIFY":
+                //         StreamsAdapterDemoHelper.putItem(dynamoDBClient, tableName,
+                //                                          streamRecord.getDynamodb().getNewImage());
+                //         break;
+                //     case "REMOVE":
+                //         StreamsAdapterDemoHelper.deleteItem(dynamoDBClient, tableName,
+                //                                             streamRecord.getDynamodb().getKeys().get("Id").getN());
+                // }
+                
+
+
+
             }
             checkpointCounter += 1;
             if (checkpointCounter % 10 == 0) {

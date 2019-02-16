@@ -46,9 +46,11 @@ public class StreamsAdapterDemo {
     private static String tablePrefix = "KCL-Demo";
     private static String streamArn;
 
-    private static Regions awsRegion = Regions.US_EAST_2;
+    private static Regions awsRegion = Regions.EU_WEST_2;
 
     private static AWSCredentialsProvider awsCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
+
+
 
     /**
      * @param args
@@ -66,14 +68,22 @@ public class StreamsAdapterDemo {
                                                                   .withRegion(awsRegion)
                                                                   .build();
         adapterClient = new AmazonDynamoDBStreamsAdapterClient(dynamoDBStreamsClient);
-        String srcTable = tablePrefix + "-src";
+        // String srcTable = tablePrefix + "-src";
+        String srcTable = "CustomerSupportGpn";
         String destTable = tablePrefix + "-dest";
         recordProcessorFactory = new StreamsRecordProcessorFactory(dynamoDBClient, destTable);
 
-        setUpTables();
-
-        workerConfig = new KinesisClientLibConfiguration("streams-adapter-demo",
-                                                         streamArn,
+        // setUpTables();
+/**
+ * - Feeding Kinesis with stream data from DynamoDB
+ *   workerConfig -> streamArn pointing to sourcetable
+ * - Consuming data to write in destination Table 
+ *   worker -> recordProcessorFactory pointing to destination table 
+ */
+        // streamArn = StreamsAdapterDemoHelper.createTable(dynamoDBClient, srcTable); 
+        streamArn = StreamsAdapterDemoHelper.createTable(dynamoDBClient, srcTable);
+        workerConfig = new KinesisClientLibConfiguration("streams-adapter-demoo",
+                                                            "arn:aws:dynamodb:eu-west-2:900382475277:table/CustomerSupportGpn/stream/2019-02-16T20:45:26.114",
                                                          awsCredentialsProvider,
                                                          "streams-demo-worker")
                 .withMaxRecords(1000)
@@ -89,7 +99,9 @@ public class StreamsAdapterDemo {
         Thread.sleep(25000);
         worker.shutdown();
         t.join();
-
+/**
+ * Check if table are similar
+ */
         if (StreamsAdapterDemoHelper.scanTable(dynamoDBClient, srcTable).getItems()
                                     .equals(StreamsAdapterDemoHelper.scanTable(dynamoDBClient, destTable).getItems())) {
             System.out.println("Scan result is equal.");
@@ -97,7 +109,9 @@ public class StreamsAdapterDemo {
         else {
             System.out.println("Tables are different!");
         }
-
+/**
+ * Cleaning
+ */
         System.out.println("Done.");
         cleanupAndExit(0);
     }
@@ -137,6 +151,7 @@ public class StreamsAdapterDemo {
         cleanupAndExit(1);
     }
 
+// feeding source table
     private static void performOps(String tableName) {
         StreamsAdapterDemoHelper.putItem(dynamoDBClient, tableName, "101", "test1");
         StreamsAdapterDemoHelper.updateItem(dynamoDBClient, tableName, "101", "test2");

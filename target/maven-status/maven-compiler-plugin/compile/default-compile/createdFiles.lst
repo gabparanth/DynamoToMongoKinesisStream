@@ -13,3 +13,4 @@ com/mycompany/app/StreamsRecordProcessor.class
 com/amazonaws/services/kinesis/samples/stocktrades/writer/StockTradeGenerator.class
 com/amazonaws/services/kinesis/samples/stocktrades/writer/StockTradeGenerator$StockPrice.class
 com/amazonaws/services/kinesis/samples/stocktrades/processor/StockStats.class
+com/mycompany/app/model/Email.class
