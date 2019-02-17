@@ -28,9 +28,11 @@ import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import com.mycompany.app.model.Email;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import java.nio.charset.Charset;
+import org.json.JSONObject;
 // import com.google.gson.*;
 
 public class StreamsRecordProcessor implements IRecordProcessor {
@@ -64,41 +66,78 @@ public class StreamsRecordProcessor implements IRecordProcessor {
     public void processRecords(ProcessRecordsInput processRecordsInput) {
         for (Record record : processRecordsInput.getRecords()) {
             String data = new String(record.getData().array(), Charset.forName("UTF-8"));
-            System.out.println("data from Stream to MongoDB: " + data);
+            // System.out.println("data from Stream to MongoDB: " + data);
             if (record instanceof RecordAdapter) {
                 
 
-                String stringToRecord = data.toString(); 
-                
-                Document doc = new Document("name", "MongoDB")
-                                    .append("type", stringToRecord);
-                
-                try {
+               
+                JSONObject jsonObj = new JSONObject(data).getJSONObject("dynamodb");
 
-                    collection.insertOne(doc);
-                }catch (Exception e) {
-                    e.printStackTrace();
+                // type should exist for all 3 types
+                String type = jsonObj.getJSONObject("NewImage").getJSONObject("type").getString("S");
+                String customerID = jsonObj.getJSONObject("NewImage").getJSONObject("customerID").getString("S");
+                String from = jsonObj.getJSONObject("NewImage").getJSONObject("from").getString("S");
+                String received = jsonObj.getJSONObject("NewImage").getJSONObject("received").getString("S");
+                String to = jsonObj.getJSONObject("NewImage").getJSONObject("to").getString("S");
+
+                Float timestamps = jsonObj.getFloat("ApproximateCreationDateTime");
+
+
+
+                Document doc = new Document("customerID", customerID);
+               try{
+                if (type.equals("email")){
+                System.out.println("trackergpn : " + type );
+                Document email = new Document ("timestamps", timestamps)
+                                        .append("from", from)
+                                        .append("received", received)
+                                        .append("to", to)
+                                        .append("subject",jsonObj.getJSONObject("NewImage").getJSONObject("subject").getString("S"))
+                                        .append("body", jsonObj.getJSONObject("NewImage").getJSONObject("body").getJSONArray("L").getJSONObject(0).getString("S"));
+                
+                doc.append("email", email);
+                
+                } 
+
+                if (type.equals("chat")){
+                    
+                System.out.println("trackergpn : " + type );
+                Document chat = new Document("timestamps", timestamps)
+                                                .append("from", from)
+                                                .append("received", received)
+                                                .append("to", to)
+                                                .append("ts2", jsonObj.getJSONObject("NewImage").getJSONObject("chat").getJSONObject("M").getJSONObject("ts2").getString("S"))
+                                                .append("content2", jsonObj.getJSONObject("NewImage").getJSONObject("chat").getJSONObject("M").getJSONObject("content2").getString("S"))
+                                                .append("from", jsonObj.getJSONObject("NewImage").getJSONObject("chat").getJSONObject("M").getJSONObject("from").getString("S"))
+                                                .append("reply", jsonObj.getJSONObject("NewImage").getJSONObject("chat").getJSONObject("M").getJSONObject("reply").getString("S"))
+                                                .append("content", jsonObj.getJSONObject("NewImage").getJSONObject("chat").getJSONObject("M").getJSONObject("content").getString("S"))
+                                                .append("ts", jsonObj.getJSONObject("NewImage").getJSONObject("chat").getJSONObject("M").getJSONObject("ts").getString("S"));
+
+                doc.append("chat", chat);  
+
+                } 
+                if (type.equals("phone")){
+                    System.out.println("trackergpn : " + type );
+                    Document phone = new Document("timestamps", timestamps)
+                                                .append("from", from)
+                                                .append("received", received)
+                                                .append("to", to)
+                                                .append("recordingURI",jsonObj.getJSONObject("NewImage").getJSONObject("recordingURI").getString("S"))
+                                                .append("lengthSeconds",jsonObj.getJSONObject("NewImage").getJSONObject("lengthSeconds").getString("N"));
+                
+                doc.append("phone", phone);                                
+
                 }
-                                    
-
-                
-                // com.amazonaws.services.dynamodbv2.model.Record streamRecord = ((RecordAdapter) record)
-                //         .getInternalObject();
-
-                // switch (streamRecord.getEventName()) {
-                //     case "INSERT":
-                //     case "MODIFY":
-                //         StreamsAdapterDemoHelper.putItem(dynamoDBClient, tableName,
-                //                                          streamRecord.getDynamodb().getNewImage());
-                //         break;
-                //     case "REMOVE":
-                //         StreamsAdapterDemoHelper.deleteItem(dynamoDBClient, tableName,
-                //                                             streamRecord.getDynamodb().getKeys().get("Id").getN());
-                // }
-                
-
-
-
+                System.out.println("data from Stream to MongoDB: " + type);
+                try{
+                    collection.insertOne(doc);
+                }catch (Exception e){
+                    e.printStackTrace();
+                    System.out.println("error");
+                }
+            }catch(Exception e){
+                e.printStackTrace();
+            }
             }
             checkpointCounter += 1;
             if (checkpointCounter % 10 == 0) {

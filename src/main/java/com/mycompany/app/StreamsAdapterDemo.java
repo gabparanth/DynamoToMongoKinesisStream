@@ -96,7 +96,7 @@ public class StreamsAdapterDemo {
         Thread t = new Thread(worker);
         t.start();
 
-        Thread.sleep(25000);
+        Thread.sleep(60000);
         worker.shutdown();
         t.join();
 /**
