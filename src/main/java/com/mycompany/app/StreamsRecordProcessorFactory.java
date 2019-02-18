@@ -18,18 +18,26 @@ package com.mycompany.app;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.v2.IRecordProcessor;
 import com.amazonaws.services.kinesis.clientlibrary.interfaces.v2.IRecordProcessorFactory;
-
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import org.bson.Document;
 public class StreamsRecordProcessorFactory implements IRecordProcessorFactory {
-    private final String tableName;
-    private final AmazonDynamoDB dynamoDBClient;
 
-    public StreamsRecordProcessorFactory(AmazonDynamoDB dynamoDBClient, String tableName) {
-        this.tableName = tableName;
-        this.dynamoDBClient = dynamoDBClient;
-    }
+
+    private final MongoClient mongoDBAtlas;
+    private final MongoDatabase mongoDBDatabase;
+    private final MongoCollection<Document> mongoDBCollection;
+
+
+    public StreamsRecordProcessorFactory(MongoClient mongoDBAtlas, MongoDatabase mongoDBDatabase, MongoCollection<Document> mongoDBCollection) {
+        this.mongoDBAtlas = mongoDBAtlas;
+        this.mongoDBDatabase = mongoDBDatabase;
+        this.mongoDBCollection = mongoDBCollection;
+   }
 
     @Override
     public IRecordProcessor createProcessor() {
-        return new StreamsRecordProcessor(dynamoDBClient, tableName);
+        return new StreamsRecordProcessor(mongoDBAtlas, mongoDBDatabase, mongoDBCollection);
     }
 }

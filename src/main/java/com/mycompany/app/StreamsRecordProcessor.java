@@ -24,32 +24,40 @@ import com.amazonaws.services.kinesis.clientlibrary.types.ProcessRecordsInput;
 import com.amazonaws.services.kinesis.clientlibrary.types.ShutdownInput;
 import com.amazonaws.services.kinesis.model.Record;
 
-import com.mongodb.ConnectionString;
+
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.UpdateOptions;
-import com.mycompany.app.model.Email;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import java.nio.charset.Charset;
 import org.json.JSONObject;
 import static com.mongodb.client.model.Filters.eq;
-// import com.google.gson.*;
+
 
 public class StreamsRecordProcessor implements IRecordProcessor {
     private Integer checkpointCounter;
 
-    private final AmazonDynamoDB dynamoDBClient;
-    private final String tableName;
+    // private final AmazonDynamoDB dynamoDBClient;
+    // private final String tableName;
 
-    MongoClient mongoClient = MongoClients.create("mongodb+srv://gabriel:gabriel@cluster0-po3pv.mongodb.net/test?retryWrites=true");
-    MongoDatabase database = mongoClient.getDatabase("saEnablementTest");
-    MongoCollection<Document> collection = database.getCollection("fromDynamodb");
+    private final MongoClient mongoDBAtlas;
+    private final MongoDatabase mongoDBDatabase;
+    private final MongoCollection<Document> mongoDBCollection;
 
-    public StreamsRecordProcessor(AmazonDynamoDB dynamoDBClient2, String tableName) {
-        this.dynamoDBClient = dynamoDBClient2;
-        this.tableName = tableName;
+    // MongoClient mongoClient = MongoClients.create("mongodb+srv://gabriel:gabriel@cluster0-po3pv.mongodb.net/test?retryWrites=true");
+    // MongoDatabase database = mongoClient.getDatabase("saEnablementTest");
+    // MongoCollection<Document> collection = database.getCollection("fromDynamodb");
+
+    // MongoClient mongoClient = MongoClients.create(mongoDBAtlasUrl);
+    // MongoDatabase database = mongoClient.getDatabase(mongoDBDatabase);
+    // MongoCollection<Document> collection = database.getCollection(mongoDBCollection);
+
+    public StreamsRecordProcessor(MongoClient mongoDBAtlas, MongoDatabase mongoDBDatabase, MongoCollection<Document> mongoDBCollection) {
+        this.mongoDBAtlas = mongoDBAtlas;
+        this.mongoDBDatabase = mongoDBDatabase;
+        this.mongoDBCollection = mongoDBCollection;
     }
 
     @Override
@@ -58,7 +66,7 @@ public class StreamsRecordProcessor implements IRecordProcessor {
     }
 
     /**
-     * ProcessRecordsInput.records could be our Kinesis producer side 
+     * processRecords : iomplementation of etl / write to mongo
      */
 
     
@@ -68,14 +76,14 @@ public class StreamsRecordProcessor implements IRecordProcessor {
     public void processRecords(ProcessRecordsInput processRecordsInput) {
         for (Record record : processRecordsInput.getRecords()) {
             String data = new String(record.getData().array(), Charset.forName("UTF-8"));
-            // System.out.println("data from Stream to MongoDB: " + data);
+            System.out.println("data from Stream to MongoDB: " + data);
             if (record instanceof RecordAdapter) {
                 
 
-               
+            // TODO : implement Remove / Update event 
+            // here we only perform an Insert for any type of event occuring on DDB
                 JSONObject jsonObj = new JSONObject(data).getJSONObject("dynamodb");
 
-                // type should exist for all 3 types
                 String type = jsonObj.getJSONObject("NewImage").getJSONObject("type").getString("S");
                 String customerID = jsonObj.getJSONObject("NewImage").getJSONObject("customerID").getString("S");
                 String from = jsonObj.getJSONObject("NewImage").getJSONObject("from").getString("S");
@@ -86,9 +94,8 @@ public class StreamsRecordProcessor implements IRecordProcessor {
 
                 Document doc = new Document();
 
-               try{
                 if (type.equals("email")){
-                System.out.println("trackergpn : " + type );
+                
                 Document email = new Document ("timestamps", timestamps)
                                         .append("from", from)
                                         .append("received", received)
@@ -102,7 +109,7 @@ public class StreamsRecordProcessor implements IRecordProcessor {
 
                 if (type.equals("chat")){
                     
-                System.out.println("trackergpn : " + type );
+
                 Document chat = new Document("timestamps", timestamps)
                                                 .append("from", from)
                                                 .append("received", received)
@@ -118,7 +125,7 @@ public class StreamsRecordProcessor implements IRecordProcessor {
 
                 } 
                 if (type.equals("phone")){
-                    System.out.println("trackergpn : " + type );
+
                     Document phone = new Document("timestamps", timestamps)
                                                 .append("from", from)
                                                 .append("received", received)
@@ -133,7 +140,7 @@ public class StreamsRecordProcessor implements IRecordProcessor {
                 try{
                     // collection.insertOne(doc);
 
-                    collection.updateOne(eq("_id", customerID),
+                    mongoDBCollection.updateOne(eq("_id", customerID),
                                          new Document ("$addToSet", doc),
                                          new UpdateOptions().upsert(true));
                     // upsert customer / type
@@ -142,9 +149,7 @@ public class StreamsRecordProcessor implements IRecordProcessor {
                     e.printStackTrace();
                     System.out.println("error");
                 }
-            }catch(Exception e){
-                e.printStackTrace();
-            }
+
             }
             checkpointCounter += 1;
             if (checkpointCounter % 10 == 0) {

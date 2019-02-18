@@ -32,6 +32,11 @@ import com.amazonaws.services.kinesis.clientlibrary.interfaces.v2.IRecordProcess
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionInStream;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.KinesisClientLibConfiguration;
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.Worker;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoClients;
+import org.bson.Document;
 
 public class StreamsAdapterDemo {
     private static Worker worker;
@@ -43,14 +48,19 @@ public class StreamsAdapterDemo {
     private static AmazonDynamoDBStreams dynamoDBStreamsClient;
     private static AmazonDynamoDBStreamsAdapterClient adapterClient;
 
-    private static String tablePrefix = "KCL-Demo";
-    private static String streamArn;
+    private static MongoClient mongodbAtlasClient;
+    private static MongoDatabase mongoDBDatabase;
+    private static MongoCollection<Document> mongoDBCollection;
+
+    private static String mongoDBAtlasUrl = "mongodb+srv://gabriel:gabriel@cluster0-po3pv.mongodb.net/test?retryWrites=true";
+    private static String databaseName = "saEnablementTest";
+    private static String collectionName = "fromDynamodb";
+    private static String streamArn = "arn:aws:dynamodb:eu-west-2:900382475277:table/CustomerSupport/stream/2019-02-18T13:17:10.255";
 
     private static Regions awsRegion = Regions.EU_WEST_2;
-
     private static AWSCredentialsProvider awsCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
 
-
+ 
 
     /**
      * @param args
@@ -58,9 +68,6 @@ public class StreamsAdapterDemo {
     public static void main(String[] args) throws Exception {
         System.out.println("Starting demo...");
 
-        dynamoDBClient = AmazonDynamoDBClientBuilder.standard()
-                                                    .withRegion(awsRegion)
-                                                    .build();
         cloudWatchClient = AmazonCloudWatchClientBuilder.standard()
                                                         .withRegion(awsRegion)
                                                         .build();
@@ -68,24 +75,21 @@ public class StreamsAdapterDemo {
                                                                   .withRegion(awsRegion)
                                                                   .build();
         adapterClient = new AmazonDynamoDBStreamsAdapterClient(dynamoDBStreamsClient);
-        // String srcTable = tablePrefix + "-src";
-        String srcTable = "CustomerSupportGpn";
-        String destTable = tablePrefix + "-dest";
-        recordProcessorFactory = new StreamsRecordProcessorFactory(dynamoDBClient, destTable);
+            
+        mongodbAtlasClient = MongoClients.create(mongoDBAtlasUrl);
+        mongoDBDatabase = mongodbAtlasClient.getDatabase(databaseName);
+        mongoDBCollection = mongoDBDatabase.getCollection(collectionName);
 
-        // setUpTables();
-/**
- * - Feeding Kinesis with stream data from DynamoDB
- *   workerConfig -> streamArn pointing to sourcetable
- * - Consuming data to write in destination Table 
- *   worker -> recordProcessorFactory pointing to destination table 
- */
-        // streamArn = StreamsAdapterDemoHelper.createTable(dynamoDBClient, srcTable); 
-        streamArn = StreamsAdapterDemoHelper.createTable(dynamoDBClient, srcTable);
-        workerConfig = new KinesisClientLibConfiguration("streams-adapter-demoo",
-                                                            "arn:aws:dynamodb:eu-west-2:900382475277:table/CustomerSupportGpn/stream/2019-02-16T20:45:26.114",
-                                                         awsCredentialsProvider,
-                                                         "streams-demo-worker")
+        recordProcessorFactory = new StreamsRecordProcessorFactory(
+                                                        mongodbAtlasClient, 
+                                                        mongoDBDatabase,
+                                                        mongoDBCollection);
+
+
+        workerConfig = new KinesisClientLibConfiguration("streams-adapter-demo",
+                                                        streamArn,
+                                                        awsCredentialsProvider,
+                                                        "streams-demo-worker")
                 .withMaxRecords(1000)
                 .withIdleTimeBetweenReadsInMillis(500)
                 .withInitialPositionInStream(InitialPositionInStream.TRIM_HORIZON);
@@ -96,76 +100,10 @@ public class StreamsAdapterDemo {
         Thread t = new Thread(worker);
         t.start();
 
-        Thread.sleep(60000);
+        Thread.sleep(600000);
         worker.shutdown();
         t.join();
-/**
- * Check if table are similar
- */
-        if (StreamsAdapterDemoHelper.scanTable(dynamoDBClient, srcTable).getItems()
-                                    .equals(StreamsAdapterDemoHelper.scanTable(dynamoDBClient, destTable).getItems())) {
-            System.out.println("Scan result is equal.");
-        }
-        else {
-            System.out.println("Tables are different!");
-        }
-/**
- * Cleaning
- */
+
         System.out.println("Done.");
-        cleanupAndExit(0);
-    }
-
-    private static void setUpTables() {
-        String srcTable = tablePrefix + "-src";
-        String destTable = tablePrefix + "-dest";
-        streamArn = StreamsAdapterDemoHelper.createTable(dynamoDBClient, srcTable);
-        StreamsAdapterDemoHelper.createTable(dynamoDBClient, destTable);
-
-        awaitTableCreation(srcTable);
-
-        performOps(srcTable);
-    }
-
-    private static void awaitTableCreation(String tableName) {
-        Integer retries = 0;
-        Boolean created = false;
-        while (!created && retries < 100) {
-            DescribeTableResult result = StreamsAdapterDemoHelper.describeTable(dynamoDBClient, tableName);
-            created = result.getTable().getTableStatus().equals("ACTIVE");
-            if (created) {
-                System.out.println("Table is active.");
-                return;
-            }
-            else {
-                retries++;
-                try {
-                    Thread.sleep(1000);
-                }
-                catch (InterruptedException e) {
-                    // do nothing
-                }
-            }
-        }
-        System.out.println("Timeout after table creation. Exiting...");
-        cleanupAndExit(1);
-    }
-
-// feeding source table
-    private static void performOps(String tableName) {
-        StreamsAdapterDemoHelper.putItem(dynamoDBClient, tableName, "101", "test1");
-        StreamsAdapterDemoHelper.updateItem(dynamoDBClient, tableName, "101", "test2");
-        StreamsAdapterDemoHelper.deleteItem(dynamoDBClient, tableName, "101");
-        StreamsAdapterDemoHelper.putItem(dynamoDBClient, tableName, "102", "demo3");
-        StreamsAdapterDemoHelper.updateItem(dynamoDBClient, tableName, "102", "demo4");
-        StreamsAdapterDemoHelper.deleteItem(dynamoDBClient, tableName, "102");
-    }
-
-    private static void cleanupAndExit(Integer returnValue) {
-        String srcTable = tablePrefix + "-src";
-        String destTable = tablePrefix + "-dest";
-        dynamoDBClient.deleteTable(new DeleteTableRequest().withTableName(srcTable));
-        dynamoDBClient.deleteTable(new DeleteTableRequest().withTableName(destTable));
-        System.exit(returnValue);
     }
 }
