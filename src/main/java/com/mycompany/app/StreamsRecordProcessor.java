@@ -28,11 +28,13 @@ import com.mongodb.ConnectionString;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
 import com.mycompany.app.model.Email;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 import java.nio.charset.Charset;
 import org.json.JSONObject;
+import static com.mongodb.client.model.Filters.eq;
 // import com.google.gson.*;
 
 public class StreamsRecordProcessor implements IRecordProcessor {
@@ -82,9 +84,8 @@ public class StreamsRecordProcessor implements IRecordProcessor {
 
                 Float timestamps = jsonObj.getFloat("ApproximateCreationDateTime");
 
+                Document doc = new Document();
 
-
-                Document doc = new Document("customerID", customerID);
                try{
                 if (type.equals("email")){
                 System.out.println("trackergpn : " + type );
@@ -130,7 +131,13 @@ public class StreamsRecordProcessor implements IRecordProcessor {
                 }
                 System.out.println("data from Stream to MongoDB: " + type);
                 try{
-                    collection.insertOne(doc);
+                    // collection.insertOne(doc);
+
+                    collection.updateOne(eq("_id", customerID),
+                                         new Document ("$addToSet", doc),
+                                         new UpdateOptions().upsert(true));
+                    // upsert customer / type
+
                 }catch (Exception e){
                     e.printStackTrace();
                     System.out.println("error");
