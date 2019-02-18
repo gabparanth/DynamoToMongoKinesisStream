@@ -52,10 +52,10 @@ public class StreamsAdapterDemo {
     private static MongoDatabase mongoDBDatabase;
     private static MongoCollection<Document> mongoDBCollection;
 
-    private static String mongoDBAtlasUrl = "mongodb+srv://gabriel:gabriel@cluster0-po3pv.mongodb.net/test?retryWrites=true";
-    private static String databaseName = "saEnablementTest";
-    private static String collectionName = "fromDynamodb";
-    private static String streamArn = "arn:aws:dynamodb:eu-west-2:900382475277:table/CustomerSupport/stream/2019-02-18T13:17:10.255";
+    private static String mongoDBAtlasUrl = "";
+    private static String databaseName = "";
+    private static String collectionName = "";
+    private static String streamArn = "";
 
     private static Regions awsRegion = Regions.EU_WEST_2;
     private static AWSCredentialsProvider awsCredentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();

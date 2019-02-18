@@ -29,12 +29,14 @@ same with the collection name to CollectionName
 
 4. compilation: mvn clean install 
 
-5. launch the ruby script 
+5. add your secret_access_key and access_key_id in the ruby script and launch to start feeding Dynamodb 
 
 6. launch the stream
 mvn exec:java -Dexec.mainClass="com.mycompany.app.StreamsAdapterDemo"
 
+there is treshold sert at 60s execution, it can be change in StreamsAdapterDemo.java Thread.sleep(600000);
 
+7. Don't forget to remove your DynamoDB source table and stream table
 -----
 
 Part 2: Tutorial from AWS 
