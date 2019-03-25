@@ -46,13 +46,6 @@ public class StreamsRecordProcessor implements IRecordProcessor {
     private final MongoDatabase mongoDBDatabase;
     private final MongoCollection<Document> mongoDBCollection;
 
-    // MongoClient mongoClient = MongoClients.create("mongodb+srv://gabriel:gabriel@cluster0-po3pv.mongodb.net/test?retryWrites=true");
-    // MongoDatabase database = mongoClient.getDatabase("saEnablementTest");
-    // MongoCollection<Document> collection = database.getCollection("fromDynamodb");
-
-    // MongoClient mongoClient = MongoClients.create(mongoDBAtlasUrl);
-    // MongoDatabase database = mongoClient.getDatabase(mongoDBDatabase);
-    // MongoCollection<Document> collection = database.getCollection(mongoDBCollection);
 
     public StreamsRecordProcessor(MongoClient mongoDBAtlas, MongoDatabase mongoDBDatabase, MongoCollection<Document> mongoDBCollection) {
         this.mongoDBAtlas = mongoDBAtlas;
@@ -66,10 +59,10 @@ public class StreamsRecordProcessor implements IRecordProcessor {
     }
 
     /**
-     * processRecords : iomplementation of etl / write to mongo
+     * processRecords : implementation of etl / write to mongo
      */
 
-    
+
 
 
     @Override
